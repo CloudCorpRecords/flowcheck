@@ -1,0 +1,22 @@
+name: shapes
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: deploy target
+        required: true
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  greet:
+    runs-on: [self-hosted, linux]
+    steps:
+      - run: echo "deploying ${{ inputs.target }} and ${{ github.event.inputs.target }}"
+
+  call-lib:
+    uses: octo-org/octo-repo/.github/workflows/reusable.yml@main
+    secrets: inherit

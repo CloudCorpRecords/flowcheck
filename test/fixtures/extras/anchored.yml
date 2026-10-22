@@ -1,0 +1,16 @@
+name: anchored
+on: [push]
+
+permissions:
+  contents: read
+
+defaults: &defaults
+  runs-on: ubuntu-latest
+  timeout-minutes: 7
+
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - run: npm test
