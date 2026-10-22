@@ -64,6 +64,14 @@ function runCli(args: string[], opts: { destroyStdoutOnFirstChunk?: boolean } = 
       child.kill("SIGKILL");
       rejectPromise(new Error("CLI timed out"));
     }, 90000);
+    if (opts.destroyStdoutOnFirstChunk) {
+      // Close the read end immediately, before the child has even finished
+      // computing its report. Destroying only on the first chunk races the
+      // writer: if the whole write lands in the kernel pipe buffer before
+      // the destroy lands, no EPIPE occurs and the process exits with its
+      // verdict code (observed on the Node 20 CI matrix, ledger P-153).
+      child.stdout.destroy();
+    }
     child.stdout.on("data", (c: Buffer) => {
       out += c.toString("utf8");
       if (opts.destroyStdoutOnFirstChunk) child.stdout.destroy();

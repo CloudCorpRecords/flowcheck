@@ -9,4 +9,4 @@ First release. Security Wave tranche 2.
 - MCP server (stdio) with audit_workflows and harden_plan tools.
 - Real YAML parsing (the `yaml` package): anchors, merge keys, and block scalars are resolved, so steps and fields hidden behind them are audited like any other.
 - Flush-aware emit contract from day one (FACTORY-NOTES): single write resolving in the stdout callback, process.exitCode, exit 141 on EPIPE, with spawned-CLI pipe regression tests over 200 KiB.
-- Build-time validation fixed three calibration problems before publish, ledger P-150 (merge keys unresolved), P-151 (broad-grant severity on opaque action steps), and P-152 (local composite actions and github-script steps as opaque token consumers), each with regression tests.
+- Build-time validation fixed four problems before publish, ledger P-150 (merge keys unresolved), P-151 (broad-grant severity on opaque action steps), P-152 (local composite actions and github-script steps as opaque token consumers), and P-153 (a racy early-close pipe test caught by the Node 20 CI matrix), each with regression tests.
