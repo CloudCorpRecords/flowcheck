@@ -24,7 +24,7 @@ import { basename, join, relative, resolve } from "node:path";
 import { LineCounter, parseDocument, isMap, isSeq, type Node, type Scalar } from "yaml";
 import type { AuditReport, Finding, HardenPlan, JobPlan, Severity, Verdict } from "./types.js";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.1.1";
 
 export const MAX_FILES = 500;
 export const MAX_FILE_BYTES = 2 * 1024 * 1024;
@@ -102,15 +102,32 @@ function collectFromDir(dir: string, root: string, out: DiscoveredFile[]): void 
 export function discoverWorkflows(target: string): { files: DiscoveredFile[]; filesSeen: number; root: string } {
   const root = resolve(target);
   const files: DiscoveredFile[] = [];
+  // P-178: a target that is not an auditable estate is a usage error,
+  // never a vacuous HARDENED over zero files. The CLI maps this throw
+  // to exit 2 with the message on stderr (the same contract as the
+  // factory siblings on a non-directory path), and the MCP tools
+  // surface it as an error instead of a success verdict. statSync is
+  // safe on a FIFO or device (only opening one can block); nothing
+  // here opens the target itself.
   let st;
   try {
     st = statSync(root);
   } catch {
-    return { files, filesSeen: 0, root };
+    throw new Error(`Path does not exist: ${target}`);
   }
   if (st.isFile()) {
-    if (isWorkflowName(basename(root))) files.push({ abs: root, rel: basename(root) });
+    // Single-file audit stays available for workflow files only (the
+    // documented contract). Any other regular file was previously
+    // treated as an empty estate and verdicted HARDENED.
+    if (!isWorkflowName(basename(root))) {
+      throw new Error(`Not a workflow file: ${target} (a single-file audit target must be a .yml or .yaml file)`);
+    }
+    files.push({ abs: root, rel: basename(root) });
     return { files, filesSeen: files.length, root };
+  }
+  if (!st.isDirectory()) {
+    // A FIFO, socket, or device is not an auditable estate.
+    throw new Error(`Path is neither a file nor a directory: ${target}`);
   }
   const wfDir = join(root, ".github", "workflows");
   let wfStat;

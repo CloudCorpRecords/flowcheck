@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 (2026-10-23)
+
+Fix release for ledger P-178.
+
+- Non-directory audit targets are now a usage error instead of the strongest verdict: `flowcheck audit` (and `harden`, which shares the same target resolution) on a FIFO, a device such as /dev/null, a regular file that is not a workflow file, or a nonexistent path exits 2 with a clear error on stderr and no report claiming HARDENED. In 0.1.0 each of those returned verdict HARDENED at exit 0 with files 0.
+- The fix lives in target resolution in the core, so the MCP tools audit_workflows and harden_plan surface the same bad paths as an error result instead of a success verdict, matching the factory siblings.
+- Directory targets behave exactly as before, and a single workflow file (.yml or .yaml) remains a valid audit target. Regression tests named for P-178 cover the FIFO, /dev/null, a regular file, a nonexistent path, a directory control, and a single workflow file control.
+
 ## 0.1.0 (2026-10-22)
 
 First release. Security Wave tranche 2.

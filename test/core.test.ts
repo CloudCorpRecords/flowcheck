@@ -103,8 +103,14 @@ describe("extra shapes", () => {
     assert.ok(rules(r).includes("FC-NO-TIMEOUT"));
   });
 
-  it("an empty estate says so plainly instead of reading as an all-clear", () => {
-    const r = auditWorkflows(join(FIXTURES, "does-not-exist"));
+  it("an empty estate says so plainly instead of reading as an all-clear", async () => {
+    // P-178: a nonexistent path is now a usage error (see p178.test.ts),
+    // so the plain-language empty-estate note is exercised on a real
+    // empty directory instead.
+    const { mkdtempSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const empty = mkdtempSync(join(tmpdir(), "flowcheck-empty-"));
+    const r = auditWorkflows(empty);
     assert.match(r.note ?? "", /no workflows found/i);
     assert.match(renderReport(r), /no workflows found/i);
   });

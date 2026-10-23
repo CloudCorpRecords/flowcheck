@@ -36,7 +36,7 @@ Verdict rules:
 - **EXPOSED**: at least one critical or high finding. Exit code 1.
 - **REVIEW**: only medium or low findings. Exit code 1.
 - **HARDENED**: no findings. Exit code 0.
-- **Usage errors** exit with code 2. A reader that closes the output pipe early makes the process exit 141, never 0.
+- **Usage errors** exit with code 2. That includes a target that is not a directory or a single workflow file: a FIFO, a device, a regular non-workflow file, or a nonexistent path gets a stderr error and no verdict, never a HARDENED over zero files. A reader that closes the output pipe early makes the process exit 141, never 0.
 
 ## The hardened plan
 
@@ -103,7 +103,7 @@ Tools: `audit_workflows(path)` returns the full audit report as JSON. `harden_pl
 ## Limits, stated plainly
 
 - Permission inference is heuristic. It recognizes the step shapes in the table above plus common `gh` CLI and script patterns. An unknown third-party action may need more (or less) than the plan suggests; the plan is a starting point a human reviews, not a proof.
-- Broad-grant findings are calibrated for invisible consumers: when a job contains a step whose token use cannot be seen in the workflow file (an unknown third-party action, a local composite action, or an `actions/github-script` step, which is arbitrary JavaScript that often delegates to repo files), the finding is reported at low severity with that caveat instead of medium or high. flowcheck does not follow local composite action files or scripts a step delegates to in v0.1.0.
+- Broad-grant findings are calibrated for invisible consumers: when a job contains a step whose token use cannot be seen in the workflow file (an unknown third-party action, a local composite action, or an `actions/github-script` step, which is arbitrary JavaScript that often delegates to repo files), the finding is reported at low severity with that caveat instead of medium or high. flowcheck does not follow local composite action files or scripts a step delegates to in v0.1.1.
 - The PR-head checkout rule needs an explicit ref expression pointing at the head (`pull_request.head`, `head_ref`, `workflow_run.head`). A checkout with no ref under `pull_request_target` checks out the base branch, which is the safe shape, and is not flagged. Indirect head checkouts assembled through env vars or outputs are not traced.
 - Self-hosted detection sees the literal `self-hosted` label in `runs-on`; runner groups named without the label are not recognized.
 - Reusable workflow jobs are planned from the call site only; the called workflow's own steps are a separate audit target.
